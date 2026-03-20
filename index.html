@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="theme-color" content="#000">
+<!-- PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="System Pulse">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22System%20Pulse%22%2C%22short_name%22%3A%22Pulse%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23030303%22%2C%22theme_color%22%3A%22%23030303%22%2C%22orientation%22%3A%22portrait%22%7D">
+<title>System Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#030303;--bg1:#080808;--bg2:#0d0d0d;--bg3:#141414;--bg4:#1c1c1c;--bg5:#252525;
+  --line:#181818;--line2:#222;--line3:#333;
+  --tx:#ededeb;--tx2:#7a7a78;--tx3:#3a3a38;
+  --brain:#4f8ef7;--gut:#34d399;--body:#fbbf24;
+  --green:#4ade80;--amber:#fbbf24;--red:#f87171;
+  --fs:15px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:var(--fs);-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--line3)}
+
+/* ── SCREENS ── */
+.scr{display:none;position:fixed;inset:0;flex-direction:column;background:var(--bg);z-index:10;overflow:hidden}
+.scr.on{display:flex}
+
+/* ── UTILS ── */
+.max{max-width:460px;margin:0 auto;width:100%}
+.btn{border:none;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .15s}
+.btn:active{transform:scale(.97);opacity:.8}
+.btn-w{background:var(--tx);color:#000;padding:.85rem 1.4rem;font-size:.83rem;letter-spacing:.05em;width:100%;text-transform:uppercase}
+.btn-g{background:transparent;border:1px solid var(--line3);color:var(--tx2);padding:.8rem 1.4rem;font-size:.82rem;width:100%}
+.btn-sm{background:var(--bg3);border:1px solid var(--line2);color:var(--tx2);padding:.5rem .9rem;font-size:.75rem;border-radius:8px}
+
+.toast{position:fixed;top:1.2rem;left:50%;transform:translateX(-50%) translateY(-60px);background:var(--bg3);border:1px solid var(--line2);color:var(--tx);border-radius:99px;padding:.45rem 1.1rem;font-size:.75rem;font-weight:500;z-index:9999;opacity:0;pointer-events:none;transition:all .25s;white-space:nowrap}
+.toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ── SPLASH ── */
+#sSplash{align-items:center;justify-content:center}
+.sp-word{font-family:'DM Serif Display',serif;font-size:2.2rem;letter-spacing:.06em;margin-bottom:.4rem}
+.sp-sub{font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:var(--tx3)}
+.sp-bar{width:100px;height:1px;background:var(--line2);margin-top:3rem;overflow:hidden}
+.sp-fill{height:100%;width:0%;background:var(--tx2);transition:width .02s linear}
+
+/* ── ONBOARD ── */
+#sOB{overflow:hidden}
+.ob-body{flex:1;overflow-y:auto;padding:3.5rem 1.8rem 1rem;display:flex;flex-direction:column;justify-content:center}
+.ob-step{display:none}.ob-step.on{display:block}
+.ob-n{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--tx3);margin-bottom:1.2rem}
+.ob-h{font-family:'DM Serif Display',serif;font-size:1.6rem;line-height:1.3;margin-bottom:.8rem}
+.ob-p{font-size:.85rem;color:var(--tx2);line-height:1.85}
+.ob-inp{background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:.85rem 1rem;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:1rem;width:100%;margin-top:1.4rem;outline:none}
+.ob-inp:focus{border-color:var(--line3)}
+.ob-foot{padding:1rem 1.8rem 1.5rem;display:flex;gap:.6rem;flex-shrink:0}
+.ob-dots{display:flex;gap:.4rem;justify-content:center;padding:.6rem 0 0}
+.ob-dot{width:5px;height:5px;border-radius:99px;background:var(--line3);transition:all .3s}.ob-dot.on{width:16px;background:var(--tx2)}
+
+/* ── HOME ── */
+#sHome{overflow-y:auto}
+.home-inner{flex:1;overflow-y:auto;padding:3rem 1.6rem 2.5rem}
+.home-greet{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--tx3);margin-bottom:.5rem}
+.home-name{font-family:'DM Serif Display',serif;font-size:1.9rem;margin-bottom:.35rem}
+.home-shi{font-size:.78rem;color:var(--tx2);margin-bottom:2.4rem;min-height:1.2em}
+.session-btns{display:flex;flex-direction:column;gap:.8rem}
+.sess-btn{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:1.3rem 1.5rem;display:flex;align-items:center;gap:1rem;cursor:pointer;transition:all .18s;text-align:left}
+.sess-btn:active{transform:scale(.98);background:var(--bg3)}
+.sess-ic{font-size:1.5rem;width:2.4rem;text-align:center;flex-shrink:0}
+.sess-txt{}
+.sess-name{font-size:.95rem;font-weight:600;color:var(--tx);margin-bottom:.2rem}
+.sess-desc{font-size:.75rem;color:var(--tx3)}
+.home-footer{margin-top:2.5rem;font-size:.72rem;color:var(--tx3);text-align:center;line-height:1.8}
+.mirror-link{color:var(--tx2);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+/* settings gear */
+.settings-fab{position:fixed;bottom:1.4rem;right:1.2rem;z-index:200;background:var(--bg3);border:1px solid var(--line2);color:var(--tx3);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;cursor:pointer;box-shadow:0 2px 12px #00000080;transition:all .2s}
+.settings-fab:active{transform:scale(.9)}
+
+/* ── MORNING JOURNEY ── */
+#sMorning{}
+.journey-head{padding:1.2rem 1.5rem .9rem;flex-shrink:0;display:flex;align-items:center;gap:.8rem;border-bottom:1px solid var(--line)}
+.jh-back{background:none;border:none;color:var(--tx2);font-size:1rem;cursor:pointer;padding:.2rem .4rem;border-radius:6px}
+.jh-title{font-size:.82rem;font-weight:600;color:var(--tx);letter-spacing:.04em}
+.journey-scroll{flex:1;overflow-y:auto;padding:1.4rem 1.5rem 3rem}
+
+/* intro note */
+.journey-intro{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:1.2rem 1.3rem;margin-bottom:1.6rem}
+.ji-tag{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--tx3);margin-bottom:.5rem}
+.ji-txt{font-size:.88rem;color:var(--tx2);line-height:1.8}
+
+/* step card */
+.step-card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;margin-bottom:1rem;overflow:hidden;transition:opacity .3s}
+.step-card.locked{opacity:.35;pointer-events:none}
+.step-head{padding:1.1rem 1.3rem;display:flex;align-items:center;gap:.9rem;cursor:pointer}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--bg3);border:1px solid var(--line3);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--tx3);flex-shrink:0;transition:all .3s}
+.step-num.active{background:var(--tx);color:#000;border-color:var(--tx)}
+.step-num.done{background:var(--green);color:#000;border-color:var(--green)}
+.step-title{font-size:.9rem;font-weight:600;color:var(--tx);flex:1}
+.step-status{font-size:.7rem;color:var(--green);display:none}
+.step-body{display:none;padding:0 1.3rem 1.3rem;border-top:1px solid var(--line)}
+.step-body.on{display:block}
+.step-body.active-step{border-top-color:var(--line2)}
+.step-note{font-size:.82rem;color:var(--tx2);line-height:1.8;margin-top:.9rem;margin-bottom:1rem}
+.step-examples{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.1rem}
+.step-example{font-size:.7rem;background:var(--bg3);border:1px solid var(--line2);color:var(--tx3);padding:.3rem .7rem;border-radius:99px}
+
+/* timer */
+.timer-box{background:var(--bg);border:1px solid var(--line2);border-radius:12px;padding:1rem 1.1rem}
+.timer-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
+.timer-controls{display:flex;align-items:center;gap:.6rem}
+.timer-adj{background:var(--bg3);border:1px solid var(--line2);color:var(--tx2);width:28px;height:28px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:all .15s}
+.timer-adj:active{transform:scale(.9)}
+.timer-display{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--tx);letter-spacing:.04em;min-width:52px;text-align:center}
+.timer-track{height:2px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:.85rem}
+.timer-fill{height:100%;background:var(--tx);border-radius:99px;transition:width .9s linear}
+
+/* step done button (without timer) */
+.done-btn{background:var(--bg3);border:1px solid var(--line2);color:var(--tx2);padding:.75rem 1rem;border-radius:10px;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:500;width:100%;cursor:pointer;transition:all .15s;text-align:center}
+.done-btn:active{transform:scale(.97)}
+
+/* journey end */
+#journeyEnd{display:none;margin-top:1.2rem;padding:1.3rem;background:var(--bg2);border:1px solid var(--line2);border-radius:14px;text-align:center}
+.je-title{font-family:'DM Serif Display',serif;font-size:1.15rem;margin-bottom:.5rem}
+.je-sub{font-size:.78rem;color:var(--tx2);margin-bottom:1.2rem;line-height:1.7}
+.je-btns{display:flex;flex-direction:column;gap:.6rem}
+.skip-note{font-size:.65rem;color:var(--tx3);margin-top:.5rem;line-height:1.6}
+
+/* ── SESSION (afternoon / night) ── */
+#sSession{overflow:hidden}
+.sess-inner{flex:1;overflow-y:auto;padding:2.4rem 1.6rem 2rem}
+.sess-header{margin-bottom:1.8rem}
+.sess-h-tag{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--tx3);margin-bottom:.4rem}
+.sess-h-title{font-family:'DM Serif Display',serif;font-size:1.6rem;margin-bottom:.5rem}
+.sess-h-note{font-size:.83rem;color:var(--tx2);line-height:1.7}
+.sess-card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:1.2rem 1.3rem;font-size:.83rem;color:var(--tx2);line-height:1.8;margin-bottom:1.6rem}
+.sess-card strong{color:var(--tx);font-weight:600}
+.sess-foot{padding:1rem 1.6rem 1.5rem;display:flex;flex-direction:column;gap:.6rem;flex-shrink:0;border-top:1px solid var(--line)}
+
+/* ── RATE ── */
+#sRate{overflow:hidden}
+.rate-inner{flex:1;overflow-y:auto;padding:2.2rem 1.6rem 1rem}
+.rate-h{font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:1.6rem}
+.pill-block{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:1.2rem 1.3rem;margin-bottom:.9rem;position:relative;overflow:hidden}
+.pb-glow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s}
+.pb-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.pb-label{font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.pb-score{font-family:'DM Serif Display',serif;font-size:1.5rem}
+.pb-word{font-size:.72rem;color:var(--tx3);margin-bottom:.8rem;min-height:1em}
+.pb-track{height:2px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:.85rem}
+.pb-fill{height:100%;border-radius:99px;transition:width .1s}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:2px;background:transparent;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--tx);border:3px solid var(--bg);box-shadow:0 0 0 2px var(--tx3);transition:box-shadow .15s}
+input[type=range]::-webkit-slider-thumb:active{box-shadow:0 0 0 4px var(--tx3)}
+.rate-foot{padding:1rem 1.6rem 1.5rem;display:flex;gap:.6rem;flex-shrink:0;border-top:1px solid var(--line)}
+
+/* ── MIRROR ── */
+#sMirror{overflow:hidden}
+.mirror-scroll{flex:1;overflow-y:auto;padding:0 0 2rem}
+.mir-head{padding:1.2rem 1.5rem .8rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid var(--line)}
+.mir-title{font-size:.82rem;font-weight:600;letter-spacing:.04em}
+.mir-home{background:none;border:none;color:var(--tx2);font-size:.78rem;cursor:pointer;padding:.2rem .5rem}
+.mir-inner{padding:1.4rem 1.5rem}
+.shi-row{display:flex;align-items:baseline;gap:.7rem;margin-bottom:.3rem}
+.shi-num{font-family:'DM Serif Display',serif;font-size:2.8rem;line-height:1}
+.shi-lbl{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3)}
+.shi-bar-wrap{height:2px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:.5rem}
+.shi-bar{height:100%;background:var(--tx2);border-radius:99px;transition:width .6s ease}
+.shi-sub{font-size:.78rem;color:var(--tx2);margin-bottom:1.3rem;min-height:1em}
+.divider{height:1px;background:var(--line);margin:.5rem 0 1.2rem}
+.sect-lbl{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--tx3);margin-bottom:.8rem}
+.pill-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem}
+.spill{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:.8rem .7rem;text-align:center}
+.spill-lbl{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.25rem}
+.spill-val{font-family:'DM Serif Display',serif;font-size:1.6rem;line-height:1;margin-bottom:.2rem}
+.spill-word{font-size:.62rem;color:var(--tx3)}
+.focus-card{border:1px solid;border-radius:12px;padding:1rem 1.1rem;margin-bottom:1rem;cursor:pointer;transition:opacity .15s}
+.focus-card:active{opacity:.8}
+.fc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem}
+.fc-label{font-size:.78rem;font-weight:600}
+.fc-arrow{font-size:.68rem;color:var(--tx3)}
+.fc-text{font-size:.77rem;color:var(--tx2);line-height:1.75}
+.chart-box{margin-bottom:1rem}
+.radar-canvas{display:flex;justify-content:center}
+.viz-btn{background:var(--bg2);border:1px solid var(--line2);color:var(--tx2);width:100%;padding:.8rem 1rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;margin-bottom:1rem;transition:all .15s}
+.viz-btn:active{background:var(--bg3)}
+.trend-wrap{position:relative;height:68px}
+.trend-lbls{display:flex;justify-content:space-between;font-size:.56rem;color:var(--tx3);margin-top:.2rem}
+.log-day{margin-bottom:1.2rem}
+.log-date{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:.5rem}
+.log-entry{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:.9rem 1rem;margin-bottom:.4rem}
+.le-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
+.le-ctx{font-size:.72rem;font-weight:600;color:var(--tx2)}
+.le-shi{font-size:.72rem;font-weight:600}
+.le-bars{}
+.le-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.3rem}
+.le-lbl{font-size:.65rem;font-weight:600;width:48px;flex-shrink:0}
+.le-bg{flex:1;height:2px;background:var(--line);border-radius:99px;overflow:hidden}
+.le-fill{height:100%;border-radius:99px;transition:width .4s}
+.le-val{font-size:.65rem;font-weight:600;width:14px;text-align:right;flex-shrink:0}
+.empty-st{text-align:center;padding:2rem 0;color:var(--tx3);font-size:.8rem;line-height:1.9}
+.data-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
+.fs-row{display:flex;align-items:center;gap:.8rem;padding:.6rem 1.5rem;border-top:1px solid var(--line);flex-shrink:0}
+.fs-row{display:flex;align-items:center;gap:.8rem;padding:.6rem 1.5rem;border-top:1px solid var(--line);flex-shrink:0}
+.fs-lbl{font-size:.62rem;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;flex-shrink:0}
+input[type=range]#fsSlider{flex:1;max-width:100px}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:#000000f0;z-index:900;display:none;align-items:flex-end;backdrop-filter:blur(8px)}
+.modal-bg.on{display:flex}
+.modal{background:var(--bg1);border-top:1px solid var(--line2);width:100%;padding:1.4rem 1.4rem;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0}
+.mhnd{width:32px;height:2px;background:var(--line3);border-radius:99px;margin:0 auto 1.2rem}
+
+/* viz modal */
+.vtabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.8rem}
+.vtab{background:var(--bg3);border:1px solid var(--line2);color:var(--tx3);padding:.35rem .75rem;border-radius:99px;font-size:.7rem;cursor:pointer;transition:all .15s}
+.vtab.on{background:var(--tx);color:#000;border-color:var(--tx)}
+.vranges{display:flex;gap:.4rem;margin-bottom:.9rem}
+.vrange{background:var(--bg3);border:1px solid var(--line2);color:var(--tx3);padding:.3rem .65rem;border-radius:99px;font-size:.68rem;cursor:pointer;transition:all .15s}
+.vrange.on{background:var(--bg4);color:var(--tx2);border-color:var(--line3)}
+.viz-info{font-size:.65rem;color:var(--tx3);margin-top:.4rem;text-align:center}
+.cleg{display:flex;align-items:center;gap:.4rem;font-size:.68rem;color:var(--tx3)}
+.cleg-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+#vizLeg{display:flex;gap:.9rem;flex-wrap:wrap;margin-top:.4rem}
+
+/* sol modal */
+.overall-box{background:var(--bg2);border:1px solid var(--line2);border-radius:12px;padding:1.1rem 1.2rem;margin-bottom:.8rem}
+.ob-lbl{font-size:.7rem;font-weight:600;color:var(--tx2);margin-bottom:.45rem;letter-spacing:.06em}
+.ob-text{font-size:.82rem;color:var(--tx2);line-height:1.8}
+.sol-pil{border:1px solid;border-radius:12px;padding:1.1rem 1.2rem;margin-bottom:.8rem}
+.sp-head{display:flex;align-items:center;gap:.8rem;margin-bottom:.8rem}
+.sp-ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sp-name{font-size:.8rem;font-weight:600}
+.sp-tips{}
+.sp-tip{display:flex;gap:.6rem;margin-bottom:.6rem;align-items:flex-start}
+.sp-dot{width:4px;height:4px;border-radius:50%;margin-top:.35em;flex-shrink:0}
+.sp-tip span{font-size:.8rem;color:var(--tx2);line-height:1.75}
+/* settings modal */
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:.85rem 0;border-bottom:1px solid var(--line)}
+.set-row:last-child{border-bottom:none}
+.set-lbl{font-size:.84rem;color:var(--tx)}
+.set-sub{font-size:.68rem;color:var(--tx3);margin-top:.15rem}
+.set-right{display:flex;align-items:center;gap:.6rem;flex-shrink:0}
+.font-btns{display:flex;gap:.4rem}
+.font-btn{background:var(--bg3);border:1px solid var(--line2);color:var(--tx2);width:28px;height:28px;border-radius:6px;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.font-btn:active{transform:scale(.9)}
+/* about modal */
+.about-block{margin-bottom:1.4rem}
+.about-tag{font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--tx3);margin-bottom:.5rem}
+.about-h{font-family:'DM Serif Display',serif;font-size:1.15rem;line-height:1.35;margin-bottom:.6rem;color:var(--tx)}
+.about-p{font-size:.82rem;color:var(--tx2);line-height:1.9}
+.about-rule{height:1px;background:var(--line);margin:1rem 0}
+.about-pill{display:inline-block;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;background:var(--bg3);border:1px solid var(--line2);color:var(--tx3);padding:.25rem .65rem;border-radius:99px;margin-right:.4rem;margin-bottom:.4rem}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+<canvas id="exportCanvas" style="display:none"></canvas>
+<div class="settings-fab" onclick="openSettings()">&#9881;</div>
+
+<!-- ═══ SPLASH ═══ -->
+<div id="sSplash" class="scr on">
+  <div class="max" style="text-align:center">
+    <div class="sp-word">System Pulse</div>
+    <div class="sp-sub">Daily Body Intelligence</div>
+    <div class="sp-bar"><div id="spFill" class="sp-fill"></div></div>
+  </div>
+</div>
+
+<!-- ═══ ONBOARD ═══ -->
+<div id="sOB" class="scr">
+  <div class="ob-body max">
+    <div class="ob-step on" id="ob0">
+      <div class="ob-n">Step 1 of 3</div>
+      <div class="ob-h">Your body talks.<br>This app listens.</div>
+      <div class="ob-p">System Pulse helps you track how your mind, stomach, and body actually feel — three times a day, in under a minute each time.<br><br>No metrics. No goals. Just honest daily awareness.</div>
+    </div>
+    <div class="ob-step" id="ob1">
+      <div class="ob-n">Step 2 of 4</div>
+      <div class="ob-h">The philosophy<br>behind it.</div>
+      <div class="ob-p">Modern life is fast. We push through tiredness, ignore our gut, suppress our thoughts, and call it productivity.<br><br>System Pulse gently asks you to pause — three times a day — and score how each part of you actually feels. Over time, you begin to see your own patterns. That awareness alone changes things.</div>
+    </div>
+    <div class="ob-step" id="ob2">
+      <div class="ob-n">Step 3 of 4</div>
+      <div class="ob-h">Three systems.<br>One daily rhythm.</div>
+      <div class="ob-p"><strong style="color:var(--brain)">Mind</strong> — Your mental clarity, focus, and cognitive ease.<br><br><strong style="color:var(--gut)">Stomach</strong> — Your gut health and comfort. (Your gut is your second brain.)<br><br><strong style="color:var(--body)">Body</strong> — Your physical energy and vitality.<br><br>Together they form your <strong style="color:var(--tx)">System Health Index</strong>.</div>
+    </div>
+    <div class="ob-step" id="ob3">
+      <div class="ob-n">Step 4 of 4</div>
+      <div class="ob-h">What should I<br>call you?</div>
+      <div class="ob-p">Just your first name is fine.</div>
+      <input type="text" id="obName" class="ob-inp" placeholder="Your name" autocomplete="off" autocorrect="off" maxlength="24">
+    </div>
+    <div class="ob-dots"><div class="ob-dot on"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+  </div>
+  <div class="ob-foot max">
+    <button id="obBk" class="btn btn-g" onclick="obPrev()" style="display:none;flex:1">Back</button>
+    <button id="obNx" class="btn btn-w" onclick="obNext()" style="flex:2">Continue</button>
+  </div>
+</div>
+
+<!-- ═══ HOME ═══ -->
+<div id="sHome" class="scr">
+  <div class="home-inner max">
+    <div class="home-greet">Today</div>
+    <div id="homeTitle" class="home-name">Good morning</div>
+    <div id="homeFooter" class="home-shi"></div>
+    <div class="session-btns">
+      <div class="sess-btn" onclick="openMorning()">
+        <div class="sess-ic">🌅</div>
+        <div class="sess-txt">
+          <div class="sess-name">Morning Journey</div>
+          <div class="sess-desc">Activity · Meditation · Breakfast</div>
+        </div>
+      </div>
+      <div class="sess-btn" onclick="openSession('afternoon')">
+        <div class="sess-ic">☀️</div>
+        <div class="sess-txt">
+          <div class="sess-name">Afternoon Check-in</div>
+          <div class="sess-desc">Quick midday pulse</div>
+        </div>
+      </div>
+      <div class="sess-btn" onclick="openSession('night')">
+        <div class="sess-ic">🌙</div>
+        <div class="sess-txt">
+          <div class="sess-name">Night Check-in</div>
+          <div class="sess-desc">Wind down and record</div>
+        </div>
+      </div>
+    </div>
+    <div class="home-footer">
+      <span id="mirrorBtn" style="display:none"><span class="mirror-link" onclick="openMirror()">View your Mirror →</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MORNING JOURNEY ═══ -->
+<div id="sMorning" class="scr">
+  <div class="journey-head max" style="width:100%">
+    <button class="jh-back btn" onclick="only('sHome');goHome()">←</button>
+    <div class="jh-title">Morning Journey</div>
+  </div>
+  <div class="journey-scroll">
+    <div class="max">
+      <!-- Intro -->
+      <div class="journey-intro">
+        <div class="ji-tag">Before you begin</div>
+        <div class="ji-txt">Start your day slow. Don't rush.<br>This assumes you've already freshened up — face washed, teeth done. You're ready to begin.</div>
+      </div>
+
+      <!-- Step 1 – Physical Activity -->
+      <div class="step-card" id="sc1">
+        <div class="step-head" onclick="toggleStep(1)">
+          <div class="step-num active" id="sn1">1</div>
+          <div class="step-title">Physical Activity</div>
+          <div class="step-status" id="ss1">Done ✓</div>
+        </div>
+        <div class="step-body on" id="sb1">
+          <div class="step-note">At least 5 minutes of movement. It doesn't matter what — just get your body going.<br><br>Some ideas:</div>
+          <div class="step-examples">
+            <span class="step-example">Run</span>
+            <span class="step-example">Walk</span>
+            <span class="step-example">Jog</span>
+            <span class="step-example">Stretch</span>
+            <span class="step-example">Jumping jacks</span>
+            <span class="step-example">Anything</span>
+          </div>
+          <div class="timer-box">
+            <div class="timer-top">
+              <div class="timer-controls">
+                <button class="timer-adj btn" onclick="adjustTimer(1,-60)">−</button>
+                <div class="timer-display" id="tt1">5:00</div>
+                <button class="timer-adj btn" onclick="adjustTimer(1,60)">+</button>
+              </div>
+              <button class="btn btn-sm" id="tstart1" onclick="startTimer(1)">Set Timer & Begin</button>
+            </div>
+            <div class="timer-track"><div class="timer-fill" id="tf1" style="width:100%"></div></div>
+            <button class="btn btn-g" onclick="markStepDone(1)" style="font-size:.75rem;padding:.6rem 1rem">I'm done (no timer)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 – Meditation -->
+      <div class="step-card locked" id="sc2">
+        <div class="step-head" onclick="toggleStep(2)">
+          <div class="step-num" id="sn2">2</div>
+          <div class="step-title">Meditation</div>
+          <div class="step-status" id="ss2">Done ✓</div>
+        </div>
+        <div class="step-body" id="sb2">
+          <div class="step-note">Sit comfortably. Close your eyes.<br><br>Focus your attention on your forehead — the feeling inside your skull, the space behind your eyes.<br><br>Then breathe:<br>· Inhale deep at your own pace<br>· Hold for your own comfort<br>· Exhale slowly<br><br>Keep repeating while staying focused on that forehead feeling. Let everything else fall away.</div>
+          <div class="timer-box">
+            <div class="timer-top">
+              <div class="timer-controls">
+                <button class="timer-adj btn" onclick="adjustTimer(2,-60)">−</button>
+                <div class="timer-display" id="tt2">5:00</div>
+                <button class="timer-adj btn" onclick="adjustTimer(2,60)">+</button>
+              </div>
+              <button class="btn btn-sm" id="tstart2" onclick="startTimer(2)">Start Meditation</button>
+            </div>
+            <div class="timer-track"><div class="timer-fill" id="tf2" style="width:100%"></div></div>
+            <button class="btn btn-g" onclick="markStepDone(2)" style="font-size:.75rem;padding:.6rem 1rem">I'm done</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 – Breakfast -->
+      <div class="step-card locked" id="sc3">
+        <div class="step-head" onclick="toggleStep(3)">
+          <div class="step-num" id="sn3">3</div>
+          <div class="step-title">Gut & Breakfast</div>
+          <div class="step-status" id="ss3">Done ✓</div>
+        </div>
+        <div class="step-body" id="sb3">
+          <div class="step-note">Eat something gentle.<br><br>No oily food. No fast food. Nothing processed. Give your gut something it can easily work with — fruit, curd, idli, oats, anything light and clean.<br><br><strong style="color:var(--tx);font-weight:600">Listen to your gut — not your cravings.</strong><br><br>Never skip breakfast. What you eat first shapes how your stomach feels all day.</div>
+          <button class="btn btn-w" onclick="markStepDone(3)" style="margin-top:.4rem">I've had breakfast — Done</button>
+        </div>
+      </div>
+
+      <!-- Journey End -->
+      <div id="journeyEnd">
+        <div class="je-title">Morning complete.</div>
+        <div class="je-sub">You've done the three things that matter. The rest of the day can now flow from this foundation.</div>
+        <div class="je-btns">
+          <button class="btn btn-w" onclick="goToRate('morning')">Record my morning data</button>
+          <button class="btn btn-g" onclick="skipAndHome()">Skip for now</button>
+        </div>
+        <div class="skip-note">Skipping means no data is recorded for this morning.<br>Your journey completion is still saved.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ AFTERNOON / NIGHT SESSION ═══ -->
+<div id="sSession" class="scr">
+  <div class="sess-inner max">
+    <div class="sess-header">
+      <div class="sess-h-tag" id="sessTag">Afternoon</div>
+      <div class="sess-h-title" id="sessTitle">Afternoon Check-In</div>
+      <div class="sess-h-note" id="sessNote"></div>
+    </div>
+    <div class="sess-card" id="sessCard"></div>
+  </div>
+  <div class="sess-foot max">
+    <button class="btn btn-w" onclick="goToRate(currentSession)">Record my data →</button>
+    <button class="btn btn-g" onclick="only('sHome');goHome()">Back to home</button>
+  </div>
+</div>
+
+<!-- ═══ RATE ═══ -->
+<div id="sRate" class="scr">
+  <div class="rate-inner max">
+    <div class="rate-h" id="rateTitle">How do you feel?</div>
+
+    <!-- Brain -->
+    <div class="pill-block" id="plBrain">
+      <div class="pb-glow" id="gwBrain"></div>
+      <div class="pb-top">
+        <div class="pb-label" style="color:var(--brain)">Mind</div>
+        <div class="pb-score" style="color:var(--brain)" id="sBrain">5</div>
+      </div>
+      <div class="pb-word" id="dBrain"></div>
+      <div class="pb-track"><div class="pb-fill" id="fBrain" style="background:var(--brain);width:44%"></div></div>
+      <input type="range" id="slBrain" min="1" max="10" value="5" oninput="onSlide('brain',this.value)">
+    </div>
+
+    <!-- Gut -->
+    <div class="pill-block" id="plGut">
+      <div class="pb-glow" id="gwGut"></div>
+      <div class="pb-top">
+        <div class="pb-label" style="color:var(--gut)">Stomach</div>
+        <div class="pb-score" style="color:var(--gut)" id="sGut">5</div>
+      </div>
+      <div class="pb-word" id="dGut"></div>
+      <div class="pb-track"><div class="pb-fill" id="fGut" style="background:var(--gut);width:44%"></div></div>
+      <input type="range" id="slGut" min="1" max="10" value="5" oninput="onSlide('gut',this.value)">
+    </div>
+
+    <!-- Body -->
+    <div class="pill-block" id="plBody">
+      <div class="pb-glow" id="gwBody"></div>
+      <div class="pb-top">
+        <div class="pb-label" style="color:var(--body)">Body</div>
+        <div class="pb-score" style="color:var(--body)" id="sBody">5</div>
+      </div>
+      <div class="pb-word" id="dBody"></div>
+      <div class="pb-track"><div class="pb-fill" id="fBody" style="background:var(--body);width:44%"></div></div>
+      <input type="range" id="slBody" min="1" max="10" value="5" oninput="onSlide('body',this.value)">
+    </div>
+  </div>
+  <div class="rate-foot max">
+    <button class="btn btn-g" style="flex:1" onclick="rateBack()">Back</button>
+    <button class="btn btn-w" style="flex:2" onclick="submitRating()">Save Pulse →</button>
+  </div>
+</div>
+
+<!-- ═══ MIRROR ═══ -->
+<div id="sMirror" class="scr">
+  <div class="mir-head max" style="width:100%">
+    <div class="mir-title">Your Mirror</div>
+    <button class="mir-home btn" onclick="only('sHome');goHome()">← Home</button>
+  </div>
+  <div class="mirror-scroll">
+    <div class="max">
+      <div class="mir-inner" id="mirrorInner"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SOLUTION MODAL -->
+<div class="modal-bg" id="solModal" onclick="if(event.target===this)closeM('solModal')">
+  <div class="modal max">
+    <div class="mhnd"></div>
+    <div style="font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin-bottom:1rem">What helps today</div>
+    <div id="solContent"></div>
+    <button class="btn btn-g" onclick="closeM('solModal')" style="margin-top:.4rem">Close</button>
+  </div>
+</div>
+
+<!-- VIZ MODAL -->
+<div class="modal-bg" id="vizModal" onclick="if(event.target===this)closeM('vizModal')">
+  <div class="modal max">
+    <div class="mhnd"></div>
+    <div style="font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin-bottom:.9rem">Data Visualisation</div>
+    <div class="vtabs">
+      <div class="vtab on" onclick="setVT('all',this)">All</div>
+      <div class="vtab" onclick="setVT('brain',this)">Mind</div>
+      <div class="vtab" onclick="setVT('gut',this)">Stomach</div>
+      <div class="vtab" onclick="setVT('body',this)">Body</div>
+      <div class="vtab" onclick="setVT('compare',this)">Compare</div>
+    </div>
+    <div class="vranges">
+      <div class="vrange on" onclick="setVR(7,this)">7d</div>
+      <div class="vrange" onclick="setVR(14,this)">14d</div>
+      <div class="vrange" onclick="setVR(30,this)">30d</div>
+      <div class="vrange" onclick="setVR(0,this)">All</div>
+    </div>
+    <div style="height:140px;position:relative"><svg id="vizSVG" style="width:100%;height:100%"></svg></div>
+    <div id="vizLeg" style="margin-top:.4rem"></div>
+    <div id="vizInfo" class="viz-info"></div>
+    <button class="btn btn-g" onclick="closeM('vizModal')" style="margin-top:1rem">Close</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════
+// DATA
+// ═══════════════════════════════
+const BW=['Foggy','Slow','Cloudy','Below par','Average','Clear enough','Focused','Sharp','Very clear','Crystal clear'];
+const GW=['Nauseous','Uneasy','Bloated','Heavy','Average','Settled','Comfortable','Light','Very good','Perfect'];
+const BodyW=['Exhausted','Very tired','Heavy','Sluggish','Average','Decent','Good','Energised','Very energised','Peak'];
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let DB={name:'',entries:[],lastMorningDate:''};
+
+const timerState={
+  1:{total:300,left:300,running:false,id:null},
+  2:{total:300,left:300,running:false,id:null}
+};
+const stepsDone={1:false,2:false,3:false};
+let currentSession='morning';
+let vizTab='all',vizRange=7;
+
+// ═══════════════════════════════
+// STORAGE
+// ═══════════════════════════════
+function sv(){try{localStorage.setItem('sp_v6',JSON.stringify(DB));}catch(e){}}
+function ld(){try{const s=localStorage.getItem('sp_v6');if(s)DB=JSON.parse(s);}catch(e){}}
+
+// ═══════════════════════════════
+// BOOT
+// ═══════════════════════════════
+ld();
+let sw=0;
+const spI=setInterval(()=>{
+  sw+=4;
+  document.getElementById('spFill').style.width=sw+'%';
+  if(sw>=100){clearInterval(spI);boot();}
+},25);
+
+function boot(){
+  hide('sSplash');
+  if(!DB.name)show('sOB');
+  else goHome();
+}
+
+function show(id){document.getElementById(id).classList.add('on');}
+function hide(id){document.getElementById(id).classList.remove('on');}
+function only(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));show(id);}
+
+// ═══════════════════════════════
+// ONBOARD
+// ═══════════════════════════════
+let obIdx=0;
+function obNext(){
+  const OB_MAX=3;
+  if(obIdx<OB_MAX){
+    obIdx++;
+    document.querySelectorAll('.ob-step').forEach((s,i)=>s.classList.toggle('on',i===obIdx));
+    document.querySelectorAll('.ob-dot').forEach((d,i)=>d.classList.toggle('on',i===obIdx));
+    document.getElementById('obBk').style.display='block';
+    document.getElementById('obNx').textContent=obIdx===OB_MAX?'Begin →':'Continue';
+  } else {
+    const n=document.getElementById('obName').value.trim();
+    if(!n){toast('Enter your name');return;}
+    DB.name=n;sv();hide('sOB');goHome();
+  }
+}
+function obPrev(){
+  if(obIdx<=0)return;
+  obIdx--;
+  document.querySelectorAll('.ob-step').forEach((s,i)=>s.classList.toggle('on',i===obIdx));
+  document.querySelectorAll('.ob-dot').forEach((d,i)=>d.classList.toggle('on',i===obIdx));
+  document.getElementById('obBk').style.display=obIdx>0?'block':'none';
+  document.getElementById('obNx').textContent=obIdx===3?'Begin →':'Continue';
+}
+
+// ═══════════════════════════════
+// HOME
+// ═══════════════════════════════
+function goHome(){
+  only('sHome');
+  const h=new Date().getHours();
+  const greet=h<12?'Good morning, ':h<17?'Good afternoon, ':'Good evening, ';
+  document.getElementById('homeTitle').textContent=greet+(DB.name||'');
+  const today=todayStr();
+  const todayEntries=DB.entries.filter(e=>e.date===today);
+  const footer=document.getElementById('homeFooter');
+  const mirrorBtn=document.getElementById('mirrorBtn');
+  if(todayEntries.length){
+    const avg=todayEntries.reduce((a,e)=>a+e.shi,0)/todayEntries.length;
+    footer.textContent='Today — SHI '+avg.toFixed(1)+' · '+todayEntries.length+' session'+(todayEntries.length>1?'s':'');
+    mirrorBtn.style.display='block';
+  } else {
+    footer.textContent='';
+    mirrorBtn.style.display='none';
+  }
+  if(DB.lastMorningDate!==today){
+    stepsDone[1]=false;stepsDone[2]=false;stepsDone[3]=false;
+  }
+}
+
+// ═══════════════════════════════
+// MORNING
+// ═══════════════════════════════
+function openMorning(){
+  only('sMorning');
+  currentSession='morning';
+  const today=todayStr();
+  if(DB.lastMorningDate!==today){
+    stepsDone[1]=false;stepsDone[2]=false;stepsDone[3]=false;
+    DB.lastMorningDate=today;sv();
+  }
+  // reset timers display
+  timerState[1].left=timerState[1].total;
+  timerState[2].left=timerState[2].total;
+  renderTimer(1);renderTimer(2);
+  refreshSteps();
+  document.querySelector('.journey-scroll').scrollTop=0;
+}
+
+function toggleStep(n){
+  if(stepsDone[n])return;
+  const locked=n>1&&!stepsDone[n-1];
+  if(locked)return;
+  document.getElementById('sb'+n).classList.toggle('on');
+}
+
+function refreshSteps(){
+  for(let i=1;i<=3;i++){
+    const card=document.getElementById('sc'+i);
+    const num=document.getElementById('sn'+i);
+    const status=document.getElementById('ss'+i);
+    const body=document.getElementById('sb'+i);
+    const locked=i>1&&!stepsDone[i-1];
+    card.classList.toggle('locked',locked&&!stepsDone[i]);
+    if(stepsDone[i]){
+      num.classList.remove('active');num.classList.add('done');num.textContent='✓';
+      status.style.display='block';body.classList.remove('on');
+    } else if(!locked){
+      num.classList.add('active');num.classList.remove('done');num.textContent=String(i);
+      status.style.display='none';body.classList.add('on');
+    } else {
+      num.classList.remove('active','done');num.textContent=String(i);
+      status.style.display='none';body.classList.remove('on');
+    }
+  }
+  const allDone=stepsDone[1]&&stepsDone[2]&&stepsDone[3];
+  document.getElementById('journeyEnd').style.display=allDone?'block':'none';
+}
+
+function markStepDone(n){
+  if(timerState[n]){clearInterval(timerState[n].id);timerState[n].running=false;}
+  if(n===1||n===2)softBeep();
+  stepsDone[n]=true;
+  refreshSteps();
+  setTimeout(()=>{
+    document.querySelector('.journey-scroll').scrollBy({top:220,behavior:'smooth'});
+  },120);
+}
+
+function skipAndHome(){only('sHome');goHome();}
+
+// ═══════════════════════════════
+// TIMERS
+// ═══════════════════════════════
+function adjustTimer(n,delta){
+  if(timerState[n].running)return;
+  timerState[n].total=Math.max(60,timerState[n].total+delta);
+  timerState[n].left=timerState[n].total;
+  renderTimer(n);
+}
+
+function startTimer(n){
+  const t=timerState[n];
+  if(t.running){
+    clearInterval(t.id);t.running=false;
+    document.getElementById('tstart'+n).textContent=n===1?'Resume Activity':'Resume Meditation';
+    return;
+  }
+  if(t.left<=0){t.left=t.total;renderTimer(n);}
+  t.running=true;
+  document.getElementById('tstart'+n).textContent='Pause';
+  t.id=setInterval(()=>{
+    t.left--;renderTimer(n);
+    if(t.left<=0){
+      clearInterval(t.id);t.running=false;
+      softBeep();
+      document.getElementById('tstart'+n).textContent='Done!';
+      markStepDone(n);
+    }
+  },1000);
+}
+
+function renderTimer(n){
+  const t=timerState[n];
+  const m=Math.floor(t.left/60),s=t.left%60;
+  document.getElementById('tt'+n).textContent=m+':'+(s<10?'0':'')+s;
+  document.getElementById('tf'+n).style.width=(t.left/t.total*100)+'%';
+}
+
+function softBeep(){
+  try{
+    const ac=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ac.createOscillator();const g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.frequency.value=528;o.type='sine';
+    g.gain.setValueAtTime(0,ac.currentTime);
+    g.gain.linearRampToValueAtTime(0.12,ac.currentTime+0.06);
+    g.gain.linearRampToValueAtTime(0,ac.currentTime+1.2);
+    o.start(ac.currentTime);o.stop(ac.currentTime+1.2);
+  }catch(e){}
+}
+
+// ═══════════════════════════════
+// AFTERNOON / NIGHT
+// ═══════════════════════════════
+function openSession(type){
+  currentSession=type;
+  only('sSession');
+  if(type==='afternoon'){
+    document.getElementById('sessTag').textContent='Afternoon';
+    document.getElementById('sessTitle').textContent='Afternoon Check-In';
+    document.getElementById('sessNote').textContent='How are you doing right now? Take a moment before you record.';
+    document.getElementById('sessCard').innerHTML='<strong>A reminder for this afternoon:</strong><br><br>Try to avoid oily food, heavy meals, or anything that might make your stomach uncomfortable. If you\'ve already eaten something like that, don\'t worry — just notice how it made you feel and record honestly.';
+  } else {
+    document.getElementById('sessTag').textContent='Night';
+    document.getElementById('sessTitle').textContent='Night Check-In';
+    document.getElementById('sessNote').textContent='You\'re nearing the end of your day. Take a slow breath before you record.';
+    document.getElementById('sessCard').innerHTML='<strong>Keep your night slow.</strong><br><br>Avoid screens, noise, and anything stimulating for at least one hour before you sleep. Let your mind settle. A calm night directly shapes how your mind, stomach, and body will feel tomorrow morning.';
+  }
+}
+
+// ═══════════════════════════════
+// RATING
+// ═══════════════════════════════
+function goToRate(ctx){
+  currentSession=ctx;
+  only('sRate');
+  document.getElementById('rateTitle').textContent='How do you feel, '+DB.name+'?';
+  // reset sliders to 5
+  ['Brain','Gut','Body'].forEach(p=>{
+    document.getElementById('sl'+p).value=5;
+    onSlide(p.toLowerCase(),5);
+  });
+}
+
+function rateBack(){
+  if(currentSession==='morning')only('sMorning');
+  else only('sSession');
+}
+
+function onSlide(p,v){
+  v=parseInt(v);
+  const pct=((v-1)/9)*100;
+  const cols={brain:'var(--brain)',gut:'var(--gut)',body:'var(--body)'};
+  const rawCols={brain:'#4f8ef7',gut:'#34d399',body:'#fbbf24'};
+  const words={brain:BW,gut:GW,body:BodyW};
+  const P=p.charAt(0).toUpperCase()+p.slice(1);
+  document.getElementById('f'+P).style.width=pct+'%';
+  document.getElementById('s'+P).textContent=v;
+  document.getElementById('d'+P).textContent=words[p][v-1]||'';
+  const op=(v/10)*0.14;
+  const col=rawCols[p];
+  const hex=Math.round(op*255).toString(16).padStart(2,'0');
+  document.getElementById('gw'+P).style.cssText='opacity:1;background:radial-gradient(ellipse at 50% 50%,'+col+hex+' 0%,transparent 70%)';
+  document.getElementById('pl'+P).style.borderColor=v>=7?col+'44':'var(--line)';
+  try{navigator.vibrate&&navigator.vibrate(4);}catch(e){}
+}
+
+function submitRating(){
+  const b=parseInt(document.getElementById('slBrain').value);
+  const g=parseInt(document.getElementById('slGut').value);
+  const bo=parseInt(document.getElementById('slBody').value);
+  const shi=((2*b)+g+bo)/4;
+  DB.entries.push({date:todayStr(),ctx:currentSession,brain:b,gut:g,body:bo,shi,ts:Date.now()});
+  sv();
+  toast('Pulse saved — SHI '+shi.toFixed(1));
+  openMirror();
+}
+
+// ═══════════════════════════════
+// MIRROR
+// ═══════════════════════════════
+function openMirror(){
+  only('sMirror');
+  renderMirror();
+  document.getElementById('fsSlider').value=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fs'))||15;
+}
+
+// font size now via stepFS in settings
+
+function renderMirror(){
+  const el=document.getElementById('mirrorInner');
+  const td=todayStr();
+  const todayE=DB.entries.filter(e=>e.date===td).sort((a,b)=>b.ts-a.ts);
+  const e=todayE[0]||null;
+  const b=e?e.brain:0,g=e?e.gut:0,bo=e?e.body:0,shi=e?e.shi:0;
+  const shiCol=shi>=7?'var(--green)':shi>=4?'var(--amber)':'var(--red)';
+  let h='';
+
+  h+='<div style="margin-bottom:.3rem"><div class="shi-row"><span class="shi-num" style="color:'+(shi>0?shiCol:'var(--tx3)')+'">'+
+    (shi>0?shi.toFixed(1):'—')+'</span><span class="shi-lbl">System Health</span></div>'+
+    '<div class="shi-bar-wrap"><div class="shi-bar" style="width:'+(shi*10)+'%"></div></div>'+
+    '<div class="shi-sub">'+(e?quickText(b,g,bo):'No reading yet today.')+'</div></div>';
+
+  if(e){
+    h+='<div class="pill-row">'+
+      '<div class="spill"><div class="spill-lbl" style="color:var(--brain)">Mind</div><div class="spill-val" style="color:var(--brain)">'+b+'</div><div class="spill-word">'+(BW[b-1]||'')+'</div></div>'+
+      '<div class="spill"><div class="spill-lbl" style="color:var(--gut)">Stomach</div><div class="spill-val" style="color:var(--gut)">'+g+'</div><div class="spill-word">'+(GW[g-1]||'')+'</div></div>'+
+      '<div class="spill"><div class="spill-lbl" style="color:var(--body)">Body</div><div class="spill-val" style="color:var(--body)">'+bo+'</div><div class="spill-word">'+(BodyW[bo-1]||'')+'</div></div>'+
+      '</div>';
+    const reg=getReg(b,g,bo);
+    if(reg){
+      h+='<div class="focus-card" style="background:'+reg.bg+';border-color:'+reg.col+'22" onclick="openSolution()">'+
+        '<div class="fc-top"><div class="fc-label" style="color:'+reg.col+'">'+reg.label+'</div><div class="fc-arrow">→ What helps</div></div>'+
+        '<div class="fc-text">'+reg.text+'</div></div>';
+    }
+  }
+
+  h+='<div class="divider"></div>';
+  h+='<div class="sect-lbl">Today\'s Balance</div>';
+  h+='<div class="chart-box radar-canvas"><canvas id="radarC" width="230" height="210"></canvas></div>';
+  h+='<button class="viz-btn" onclick="openViz()">📊 Visualise My Data</button>';
+  h+='<div class="data-row"><button class="btn btn-g" onclick="exportJSON()" style="font-size:.75rem;padding:.7rem .8rem">&#8595; Export JSON</button><button class="btn btn-g" onclick="exportImageReport()" style="font-size:.75rem;padding:.7rem .8rem">&#8595; Export Image</button></div>';
+  h+='<div style="margin-bottom:1rem"><button class="btn btn-g" onclick="document.getElementById(\'importFile\').click()" style="font-size:.75rem;padding:.7rem .8rem;width:100%">&#8593; Import Data</button></div>';
+  h+='<div class="chart-box"><div class="sect-lbl">Last 7 Days — SHI Trend</div><div class="trend-wrap"><svg id="trendSVG" style="width:100%;height:100%"></svg></div><div id="trendLbls" class="trend-lbls"></div></div>';
+  h+='<div class="divider"></div>';
+  h+='<div class="sect-lbl">Sessions</div>';
+
+  if(!DB.entries.length){
+    h+='<div class="empty-st">No sessions yet.<br>Complete a check-in to start.</div>';
+  } else {
+    const byDate={};
+    [...DB.entries].sort((a,b)=>b.ts-a.ts).forEach(e=>{if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
+    Object.keys(byDate).sort((a,b)=>b.localeCompare(a)).slice(0,14).forEach(date=>{
+      const es=byDate[date];const d=parseDt(date);const isToday=date===td;
+      h+='<div class="log-day"><div class="log-date">'+(isToday?'Today — ':'')+DAYS[d.getDay()]+' '+d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear()+'</div>';
+      es.forEach(e=>{
+        const sc=e.shi>=7?'var(--green)':e.shi>=4?'var(--amber)':'var(--red)';
+        const ctxLbl=e.ctx==='morning'?'Morning':e.ctx==='afternoon'?'Afternoon':'Night';
+        h+='<div class="log-entry"><div class="le-top"><div class="le-ctx">'+ctxLbl+'</div><div class="le-shi" style="color:'+sc+'">SHI '+e.shi.toFixed(1)+'</div></div><div class="le-bars">'+
+          [['brain','var(--brain)','Mind'],['gut','var(--gut)','Stomach'],['body','var(--body)','Body']].map(([p,c,n])=>
+            '<div class="le-row"><div class="le-lbl" style="color:'+c+'">'+n+'</div><div class="le-bg"><div class="le-fill" style="width:'+e[p]*10+'%;background:'+c+'"></div></div><div class="le-val" style="color:'+c+'">'+e[p]+'</div></div>'
+          ).join('')+'</div></div>';
+      });
+      h+='</div>';
+    });
+  }
+
+  el.innerHTML=h;
+  drawRadar(b,g,bo);
+  drawTrend();
+}
+
+function quickText(b,g,bo){
+  if(b>=7&&g>=7&&bo>=7)return'All systems looking good today.';
+  const m=Math.min(b,g,bo);
+  if(m===b&&b<5)return'Your mind needs some attention today.';
+  if(m===g&&g<5)return'Your stomach is not at its best today.';
+  if(m===bo&&bo<5)return'Your body feels heavy today.';
+  return'Doing reasonably well. Keep tracking.';
+}
+
+function getReg(b,g,bo){
+  const m=Math.min(b,g,bo);if(m>5)return null;
+  if(b<=g&&b<=bo&&b<5)return{label:'Your mind needs attention today',text:'Your thinking feels slow or foggy. A short break, fresh air, or closing your eyes for two minutes can help.',col:'var(--brain)',bg:'#060e1a'};
+  if(g<=b&&g<=bo&&g<5)return{label:'Your stomach needs recovery today',text:'Your gut feels off. Keep it light — no heavy food, drink warm water, and take a short walk if you can.',col:'var(--gut)',bg:'#031208'};
+  return{label:'Your body needs movement today',text:'You feel heavy and stiff. Stand up, roll your shoulders, and take a few slow steps. That alone makes a difference.',col:'var(--body)',bg:'#100c00'};
+}
+
+function drawRadar(b,g,bo){
+  const c=document.getElementById('radarC');if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=c.width,H=c.height,cx=W/2,cy=H/2+6,R=70;
+  ctx.clearRect(0,0,W,H);
+  for(let i=1;i<=4;i++){
+    const r=R*(i/4);
+    ctx.beginPath();
+    for(let j=0;j<3;j++){const a=(j*2*Math.PI/3)-Math.PI/2;j===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));}
+    ctx.closePath();ctx.strokeStyle='#1a1a1a';ctx.lineWidth=1;ctx.stroke();
+  }
+  for(let j=0;j<3;j++){const a=(j*2*Math.PI/3)-Math.PI/2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));ctx.strokeStyle='#1e1e1e';ctx.lineWidth=1;ctx.stroke();}
+  const ls=[{t:'Mind',c:'#4f8ef7'},{t:'Stomach',c:'#34d399'},{t:'Body',c:'#fbbf24'}];
+  ls.forEach((l,j)=>{const a=(j*2*Math.PI/3)-Math.PI/2;ctx.fillStyle=l.c;ctx.font='500 9px DM Sans,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(l.t,cx+(R+18)*Math.cos(a),cy+(R+18)*Math.sin(a));});
+  if(b>0||g>0||bo>0){
+    const vs=[b,g,bo];const cs=['#4f8ef7','#34d399','#fbbf24'];
+    ctx.beginPath();
+    vs.forEach((v,j)=>{const a=(j*2*Math.PI/3)-Math.PI/2;const r=R*(v/10);j===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));});
+    ctx.closePath();ctx.fillStyle='#ffffff06';ctx.fill();ctx.strokeStyle='#ffffff18';ctx.lineWidth=1.5;ctx.stroke();
+    vs.forEach((v,j)=>{
+      const a=(j*2*Math.PI/3)-Math.PI/2;const r=R*(v/10);const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+      ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle=cs[j];ctx.fill();
+      ctx.fillStyle='#000';ctx.font='bold 8px DM Sans,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(v,x,y);
+    });
+  }
+}
+
+function drawTrend(){
+  const svg=document.getElementById('trendSVG');
+  const lbls=document.getElementById('trendLbls');
+  if(!svg||!lbls)return;
+  const W=svg.parentElement?svg.parentElement.offsetWidth:280,H=68,pad=8;
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  const pts=[];const la=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(Date.now()-i*86400000);const ds=dStr(d);
+    const es=DB.entries.filter(e=>e.date===ds);
+    pts.push(es.length?es.reduce((a,e)=>a+e.shi,0)/es.length:null);
+    la.push(d.getDate().toString());
+  }
+  lbls.innerHTML=la.map(l=>'<span>'+l+'</span>').join('');
+  if(!pts.some(p=>p!==null)){
+    svg.innerHTML='<text x="'+(W/2)+'" y="34" fill="#2a2a2a" font-size="10" font-family="DM Sans,sans-serif" text-anchor="middle">Log data to see trend</text>';
+    return;
+  }
+  const aw=W-pad*2,ah=H-pad*2,step=aw/6;
+  const coords=pts.map((v,i)=>({x:pad+i*step,y:v!=null?pad+ah-((v/10)*ah):null}));
+  let html='<defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4f8ef6" stop-opacity="0.2"/><stop offset="100%" stop-color="#4f8ef6" stop-opacity="0"/></linearGradient></defs>';
+  const segs=[];let cur=[];
+  coords.forEach(c=>{if(c.y!=null)cur.push(c);else{if(cur.length)segs.push(cur);cur=[];}});
+  if(cur.length)segs.push(cur);
+  segs.forEach(seg=>{
+    if(seg.length<2)return;
+    const lp=seg.map((c,i)=>(i===0?'M':'L')+c.x.toFixed(1)+','+c.y.toFixed(1)).join(' ');
+    const ap=lp+' L'+seg[seg.length-1].x.toFixed(1)+','+(H-pad)+' L'+seg[0].x.toFixed(1)+','+(H-pad)+' Z';
+    html+='<path d="'+ap+'" fill="url(#tg)"/>';
+    html+='<path d="'+lp+'" fill="none" stroke="#4f8ef6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    seg.forEach(c=>{html+='<circle cx="'+c.x.toFixed(1)+'" cy="'+c.y.toFixed(1)+'" r="2.5" fill="#4f8ef6"/>';});
+  });
+  svg.innerHTML=html;
+}
+
+// ═══════════════════════════════
+// SOLUTION MODAL
+// ═══════════════════════════════
+function openSolution(){
+  const td=todayStr();const es=DB.entries.filter(e=>e.date===td).sort((a,b)=>b.ts-a.ts);const e=es[0];
+  if(!e){return;}
+  const b=e.brain,g=e.gut,bo=e.body;
+  const TIPS={
+    brain:{icon:'🧠',col:'#4f8ef7',bg:'#060e1a',tips:['Close your eyes and take three slow breaths. Just three. That alone clears the fog.','Write down the one thing you need to do today — just one. Too many open thoughts cause heaviness.','Go outside for even five minutes. Fresh air and natural light reset a foggy mind.','Avoid scrolling on your phone. It makes the fog worse, not better.','Drink a glass of water. Mild dehydration alone causes mental slowness.']},
+    gut:{icon:'🫃',col:'#34d399',bg:'#031208',tips:['Drink a glass of warm water right now. It helps your gut relax.','If you\'ve eaten something heavy, take a slow 10-minute walk to help your body process it.','Avoid cold drinks, oily food, or anything processed until your stomach feels better.','Your stomach often reflects how you feel emotionally. That connection is real.','Eat smaller, lighter meals today rather than one large meal.']},
+    body:{icon:'🧍',col:'#fbbf24',bg:'#100c00',tips:['Stand up right now. Just standing is the first step.','Roll your shoulders slowly backwards five times. You\'ll feel the stiffness loosen.','Splash cold water on your face. It wakes up the whole body fast.','Take 20 slow steps anywhere — even around the room. Your body needs the signal to move.','Even two minutes of sunlight and fresh air outside shifts your body energy noticeably.']}
+  };
+  let html='';
+  if(e.shi<5){html+='<div class="overall-box"><div class="ob-lbl">Overall — Take it easy today</div><div class="ob-text">Your system is running low. Simplify today — avoid big decisions, eat something light, drink water, and rest a bit earlier tonight.</div></div>';}
+  [['brain',b,TIPS.brain],['gut',g,TIPS.gut],['body',bo,TIPS.body]].forEach(([key,val,info])=>{
+    if(val>=7)return;
+    html+='<div class="sol-pil" style="background:'+info.bg+';border-color:'+info.col+'22">'+
+      '<div class="sp-head"><div class="sp-ic" style="background:'+info.col+'18;font-size:1.3rem">'+info.icon+'</div>'+
+      '<div><div class="sp-name" style="color:'+info.col+'">'+(key==='brain'?'Mind':key==='gut'?'Stomach':'Body')+' — '+val+'/10</div>'+
+      '<div style="font-size:.67rem;color:var(--tx3);margin-top:.1rem">'+(val<4?'Needs attention':val<6?'Below your best':'Could use a lift')+'</div></div></div>'+
+      '<div class="sp-tips">'+info.tips.slice(0,3).map(t=>'<div class="sp-tip"><div class="sp-dot" style="background:'+info.col+'"></div><span>'+t+'</span></div>').join('')+'</div></div>';
+  });
+  if(!html)html='<div class="overall-box"><div class="ob-lbl">All good today</div><div class="ob-text">Your scores are healthy. Keep doing what you\'re doing — sleep well, eat gentle food, move a little, stay consistent.</div></div>';
+  document.getElementById('solContent').innerHTML=html;
+  document.getElementById('solModal').classList.add('on');
+}
+
+// ═══════════════════════════════
+// VISUALISATION
+// ═══════════════════════════════
+function openViz(){document.getElementById('vizModal').classList.add('on');drawViz();}
+function setVT(t,el){vizTab=t;document.querySelectorAll('.vtab').forEach(x=>x.classList.remove('on'));el.classList.add('on');drawViz();}
+function setVR(r,el){vizRange=r;document.querySelectorAll('.vrange').forEach(x=>x.classList.remove('on'));el.classList.add('on');drawViz();}
+
+function drawViz(){
+  const svg=document.getElementById('vizSVG');const leg=document.getElementById('vizLeg');const info=document.getElementById('vizInfo');
+  if(!svg)return;
+  const all=[...DB.entries].sort((a,b)=>a.ts-b.ts);
+  const now=Date.now();
+  const filtered=vizRange===0?all:all.filter(e=>(now-new Date(e.date+'T12:00:00').getTime())<vizRange*86400000);
+  if(!filtered.length){
+    svg.innerHTML='<text x="50%" y="70" fill="#2a2a2a" font-size="11" font-family="DM Sans,sans-serif" text-anchor="middle">No data in this range yet</text>';
+    svg.setAttribute('viewBox','0 0 300 140');leg.innerHTML='';info.textContent='';return;
+  }
+  const W=svg.parentElement?svg.parentElement.offsetWidth:320,H=140,pL=10,pR=10,pT=12,pB=20;
+  const aw=W-pL-pR,ah=H-pT-pB;
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  const LINES={all:[{key:'shi',col:'#ededeb',lbl:'Health'},{key:'brain',col:'#4f8ef7',lbl:'Mind'},{key:'gut',col:'#34d399',lbl:'Stomach'},{key:'body',col:'#fbbf24',lbl:'Body'}],brain:[{key:'brain',col:'#4f8ef7',lbl:'Mind'}],gut:[{key:'gut',col:'#34d399',lbl:'Stomach'}],body:[{key:'body',col:'#fbbf24',lbl:'Body'}],compare:[{key:'brain',col:'#4f8ef7',lbl:'Mind'},{key:'gut',col:'#34d399',lbl:'Stomach'},{key:'body',col:'#fbbf24',lbl:'Body'}]};
+  const lines=LINES[vizTab]||LINES.all;
+  const n=filtered.length,step=n>1?aw/(n-1):0;
+  let html='<defs>';lines.forEach(l=>{html+='<linearGradient id="vg_'+l.key+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+l.col+'" stop-opacity="0.18"/><stop offset="100%" stop-color="'+l.col+'" stop-opacity="0"/></linearGradient>';});html+='</defs>';
+  [2.5,5,7.5,10].forEach(v=>{const y=pT+ah-((v/10)*ah);html+='<line x1="'+pL+'" y1="'+y.toFixed(1)+'" x2="'+(W-pR)+'" y2="'+y.toFixed(1)+'" stroke="#141414" stroke-width="1"/>';html+='<text x="'+pL+'" y="'+(y-2).toFixed(1)+'" font-size="7" fill="#262626" font-family="DM Sans,sans-serif">'+v+'</text>';});
+  lines.forEach(l=>{
+    const coords=filtered.map((e,i)=>({x:pL+(n>1?i*step:aw/2),y:pT+ah-(((l.key==='shi'?e.shi:e[l.key])||0)/10)*ah}));
+    if(coords.length===1){html+='<circle cx="'+coords[0].x.toFixed(1)+'" cy="'+coords[0].y.toFixed(1)+'" r="4" fill="'+l.col+'"/>';return;}
+    const lp=coords.map((c,i)=>(i===0?'M':'L')+c.x.toFixed(1)+','+c.y.toFixed(1)).join(' ');
+    const ap=lp+' L'+coords[n-1].x.toFixed(1)+','+(H-pB)+' L'+coords[0].x.toFixed(1)+','+(H-pB)+' Z';
+    html+='<path d="'+ap+'" fill="url(#vg_'+l.key+')" opacity="0.7"/>';
+    const sw2=(vizTab==='all'&&l.key==='shi')?2:1.5;const op2=(vizTab==='all'&&l.key!=='shi')?0.65:1;
+    html+='<path d="'+lp+'" fill="none" stroke="'+l.col+'" stroke-width="'+sw2+'" stroke-linecap="round" stroke-linejoin="round" opacity="'+op2+'"/>';
+    if(n<=30)coords.forEach(c=>{html+='<circle cx="'+c.x.toFixed(1)+'" cy="'+c.y.toFixed(1)+'" r="2.5" fill="'+l.col+'"/>';});
+  });
+  const maxL=Math.min(7,n);const skip=Math.max(1,Math.floor(n/maxL));
+  filtered.forEach((e,i)=>{if(i%skip!==0&&i!==n-1)return;const x=pL+(n>1?i*step:aw/2);const d=parseDt(e.date);html+='<text x="'+x.toFixed(1)+'" y="'+(H-3)+'" font-size="7" fill="#343434" text-anchor="middle" font-family="DM Sans,sans-serif">'+d.getDate()+'/'+(d.getMonth()+1)+'</text>';});
+  svg.innerHTML=html;
+  leg.innerHTML=lines.map(l=>'<div class="cleg"><div class="cleg-dot" style="background:'+l.col+'"></div>'+l.lbl+'</div>').join('');
+  if(filtered.length>=2){const vs=filtered.map(e=>e.shi);const avg=vs.reduce((a,b)=>a+b,0)/vs.length;const trend=vs[vs.length-1]-vs[0];info.textContent=filtered.length+' entries · Avg SHI: '+avg.toFixed(1)+' · Trend: '+(trend>=0?'+':'')+trend.toFixed(1);}
+  else info.textContent=filtered.length+' entry';
+}
+
+// ═══════════════════════════════
+// UTILS
+// ═══════════════════════════════
+function todayStr(){return dStr(new Date());}
+function dStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function parseDt(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function closeM(id){document.getElementById(id).classList.remove('on');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
+
+// ═══════════════════════════════
+// SETTINGS
+// ═══════════════════════════════
+function openSettings(){
+  document.getElementById('fsSizeLabel').textContent=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fs'))||15;
+  document.getElementById('settingsModal').classList.add('on');
+}
+function stepFS(delta){
+  let cur=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fs'))||15;
+  cur=Math.max(12,Math.min(20,cur+delta));
+  document.documentElement.style.setProperty('--fs',cur+'px');
+  document.getElementById('fsSizeLabel').textContent=cur;
+  try{localStorage.setItem('sp_fs',cur);}catch(e){}
+}
+(function(){try{const f=localStorage.getItem('sp_fs');if(f)document.documentElement.style.setProperty('--fs',f+'px');}catch(e){}})();
+
+function openAbout(){document.getElementById('aboutModal').classList.add('on');}
+
+// ═══════════════════════════════
+// DATA PORTABILITY
+// ═══════════════════════════════
+function exportJSON(){
+  if(!DB.entries.length){toast('No data to export yet');return;}
+  const payload={app:'System Pulse',exported:new Date().toISOString(),data:DB};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='system-pulse-'+todayStr()+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('Data exported!');
+}
+
+function importData(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const parsed=JSON.parse(ev.target.result);
+      const imported=parsed.data||parsed;
+      if(!imported.entries||!Array.isArray(imported.entries)){toast('Invalid file format');return;}
+      DB=imported;sv();
+      toast('Imported — '+imported.entries.length+' sessions');
+      goHome();
+    }catch(ex){toast('Could not read file');}
+  };
+  reader.readAsText(file);input.value='';
+}
+
+// ═══════════════════════════════
+// IMAGE REPORT EXPORT
+// ═══════════════════════════════
+function exportImageReport(){
+  if(!DB.entries.length){toast('No data to export yet');return;}
+  toast('Generating report image…');
+  setTimeout(()=>{
+    const W=640,H=880;
+    const canvas=document.getElementById('exportCanvas');
+    canvas.width=W;canvas.height=H;canvas.style.display='block';
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#030303';ctx.fillRect(0,0,W,H);
+    // header
+    ctx.fillStyle='#0d0d0d';ctx.fillRect(0,0,W,72);
+    ctx.fillStyle='#ededeb';ctx.font='bold 22px serif';ctx.textAlign='left';ctx.fillText('System Pulse',28,34);
+    ctx.fillStyle='#3a3a38';ctx.font='10px sans-serif';ctx.fillText('Daily Body Intelligence',28,52);
+    ctx.fillStyle='#3a3a38';ctx.textAlign='right';ctx.font='10px sans-serif';ctx.fillText((DB.name||'')+' — '+todayStr(),W-28,34);
+    // trend
+    const pts=[];
+    for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*86400000);const ds=dStr(d);const es=DB.entries.filter(e=>e.date===ds);pts.push({date:d,val:es.length?es.reduce((a,e)=>a+e.shi,0)/es.length:null});}
+    const chX=28,chY=92,chW=W-56,chH=110;
+    ctx.fillStyle='#0d0d0d';roundRect(ctx,chX,chY,chW,chH,10);ctx.fill();
+    ctx.fillStyle='#2a2a2a';ctx.font='8px sans-serif';ctx.textAlign='left';ctx.fillText('SHI TREND — LAST 7 DAYS',chX+12,chY+16);
+    const pL=12,pR=12,pT=26,pB=22,aW=chW-pL-pR,aH=chH-pT-pB;
+    const valid=pts.filter(p=>p.val!==null);
+    if(valid.length>=1){
+      const coords=pts.map((p,i)=>({x:chX+pL+(i/6)*aW,y:p.val!=null?chY+pT+aH-((p.val/10)*aH):null}));
+      ctx.strokeStyle='#4f8ef7';ctx.lineWidth=2;ctx.beginPath();
+      let st=false;coords.forEach(c=>{if(!c.y){st=false;return;}if(!st){ctx.moveTo(c.x,c.y);st=true;}else ctx.lineTo(c.x,c.y);});ctx.stroke();
+      coords.forEach(c=>{if(!c.y)return;ctx.beginPath();ctx.arc(c.x,c.y,3,0,Math.PI*2);ctx.fillStyle='#4f8ef7';ctx.fill();});
+      pts.forEach((p,i)=>{ctx.fillStyle='#2a2a2a';ctx.font='8px sans-serif';ctx.textAlign='center';ctx.fillText(p.date.getDate()+'/'+(p.date.getMonth()+1),chX+pL+(i/6)*aW,chY+chH-6);});
+    }
+    // system cards
+    const cardY=222,cardH=110,cardW=(W-56-16)/3;
+    const lastE=DB.entries.length?DB.entries[DB.entries.length-1]:null;
+    [[lastE?lastE.brain:0,'#4f8ef7','Mind'],[lastE?lastE.gut:0,'#34d399','Stomach'],[lastE?lastE.body:0,'#fbbf24','Body']].forEach(([val,col,lbl],i)=>{
+      const cx2=28+i*(cardW+8);
+      ctx.fillStyle='#0d0d0d';roundRect(ctx,cx2,cardY,cardW,cardH,10);ctx.fill();
+      ctx.strokeStyle=col+'33';ctx.lineWidth=1;roundRect(ctx,cx2,cardY,cardW,cardH,10);ctx.stroke();
+      ctx.fillStyle=col;ctx.font='8px sans-serif';ctx.textAlign='center';ctx.fillText(lbl.toUpperCase(),cx2+cardW/2,cardY+20);
+      ctx.fillStyle=col;ctx.font='bold 36px serif';ctx.fillText(val||'—',cx2+cardW/2,cardY+66);
+      const bx=cx2+14,bw=cardW-28,by=cardY+82;
+      ctx.fillStyle='#181818';ctx.fillRect(bx,by,bw,2);ctx.fillStyle=col;ctx.fillRect(bx,by,bw*((val||0)/10),2);
+    });
+    // recent sessions
+    const listY=356;
+    ctx.fillStyle='#2a2a2a';ctx.font='8px sans-serif';ctx.textAlign='left';ctx.fillText('RECENT SESSIONS',28,listY);
+    const recent=[...DB.entries].sort((a,b)=>b.ts-a.ts).slice(0,7);
+    recent.forEach((e,i)=>{
+      const ry=listY+14+i*58;
+      ctx.fillStyle='#0a0a0a';roundRect(ctx,28,ry,W-56,50,8);ctx.fill();
+      const sc=e.shi>=7?'#4ade80':e.shi>=4?'#fbbf24':'#f87171';
+      ctx.fillStyle='#555';ctx.font='9px sans-serif';ctx.textAlign='left';
+      ctx.fillText((e.ctx==='morning'?'Morning':e.ctx==='afternoon'?'Afternoon':'Night')+' · '+e.date,40,ry+15);
+      ctx.fillStyle=sc;ctx.font='bold 10px sans-serif';ctx.textAlign='right';ctx.fillText('SHI '+e.shi.toFixed(1),W-40,ry+15);
+      [['Mind','#4f8ef7',e.brain],['Stomach','#34d399',e.gut],['Body','#fbbf24',e.body]].forEach(([n,c,v],j)=>{
+        const bx=40+j*185,by2=ry+22,bw2=150;
+        ctx.fillStyle=c;ctx.font='7px sans-serif';ctx.textAlign='left';ctx.fillText(n+' '+v,bx,by2+8);
+        ctx.fillStyle='#1a1a1a';ctx.fillRect(bx,by2+12,bw2,2);ctx.fillStyle=c;ctx.fillRect(bx,by2+12,bw2*(v/10),2);
+      });
+    });
+    // footer
+    ctx.fillStyle='#0d0d0d';ctx.fillRect(0,H-32,W,32);
+    ctx.fillStyle='#2a2a2a';ctx.font='8px sans-serif';ctx.textAlign='center';ctx.fillText('System Pulse · '+new Date().toLocaleString(),W/2,H-12);
+    canvas.style.display='none';
+    canvas.toBlob(blob=>{
+      const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='system-pulse-report-'+todayStr()+'.png';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);toast('Report saved as image!');
+    },'image/png');
+  },80);
+}
+
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+
+// ═══════════════════════════════
+// RESET
+// ═══════════════════════════════
+function confirmReset(){closeM('settingsModal');document.getElementById('resetModal').classList.add('on');}
+function doReset(){
+  try{localStorage.removeItem('sp_v6');}catch(e){}
+  DB={name:'',entries:[],lastMorningDate:''};
+  closeM('resetModal');
+  obIdx=0;
+  document.querySelectorAll('.ob-step').forEach((s,i)=>s.classList.toggle('on',i===0));
+  document.querySelectorAll('.ob-dot').forEach((d,i)=>d.classList.toggle('on',i===0));
+  document.getElementById('obBk').style.display='none';
+  document.getElementById('obNx').textContent='Continue';
+  only('sOB');
+  toast('Everything reset');
+}
+
+</script>
+<!-- Settings Modal -->
+<div class="modal-bg" id="settingsModal" onclick="if(event.target===this)closeM('settingsModal')">
+  <div class="modal max">
+    <div class="mhnd"></div>
+    <div style="font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin-bottom:1rem">Settings</div>
+    <div class="set-row">
+      <div><div class="set-lbl">Text Size</div><div class="set-sub">Adjust reading comfort</div></div>
+      <div class="set-right">
+        <div class="font-btns">
+          <button class="font-btn" onclick="stepFS(-1)">A&#8722;</button>
+          <button class="font-btn" onclick="stepFS(1)">A+</button>
+        </div>
+        <span id="fsSizeLabel" style="font-size:.68rem;color:var(--tx3);min-width:24px;text-align:right">15</span>
+      </div>
+    </div>
+    <div class="set-row" style="cursor:pointer" onclick="closeM('settingsModal');openAbout()">
+      <div><div class="set-lbl">About System Pulse</div><div class="set-sub">Philosophy, purpose &amp; how it works</div></div>
+      <div style="color:var(--tx3)">&#8594;</div>
+    </div>
+    <div class="set-row" style="cursor:pointer" onclick="exportJSON()">
+      <div><div class="set-lbl">Export Data (JSON)</div><div class="set-sub">Download all sessions as a file</div></div>
+      <div style="color:var(--tx3)">&#8595;</div>
+    </div>
+    <div class="set-row" style="cursor:pointer" onclick="exportImageReport()">
+      <div><div class="set-lbl">Export Report (Image)</div><div class="set-sub">Save a visual summary you can share</div></div>
+      <div style="color:var(--tx3)">&#8595;</div>
+    </div>
+    <div class="set-row" style="cursor:pointer" onclick="document.getElementById('importFile').click()">
+      <div><div class="set-lbl">Import Data</div><div class="set-sub">Restore from a previously exported JSON</div></div>
+      <div style="color:var(--tx3)">&#8593;</div>
+    </div>
+    <div class="set-row" style="cursor:pointer" onclick="confirmReset()">
+      <div><div class="set-lbl" style="color:var(--red)">Reset Everything</div><div class="set-sub">Delete all data and start fresh</div></div>
+      <div style="color:var(--red)">&#10005;</div>
+    </div>
+    <button class="btn btn-g" onclick="closeM('settingsModal')" style="margin-top:.8rem">Close</button>
+  </div>
+</div>
+
+<!-- About Modal -->
+<div class="modal-bg" id="aboutModal" onclick="if(event.target===this)closeM('aboutModal')">
+  <div class="modal max">
+    <div class="mhnd"></div>
+    <div class="about-block">
+      <div class="about-tag">What is this</div>
+      <div class="about-h">System Pulse is a daily body intelligence journal.</div>
+      <div class="about-p">It was built from a personal observation: we go through each day reacting to how we feel, without ever pausing to actually name it. We push through fogginess, ignore stomach discomfort, and dismiss physical tiredness — and then wonder why some days feel impossible while others feel effortless.<br><br>System Pulse changes that. Three short check-ins per day. Three scores. No judgment. Just honest self-observation.</div>
+    </div>
+    <div class="about-rule"></div>
+    <div class="about-block">
+      <div class="about-tag">The philosophy</div>
+      <div class="about-h">Awareness is the first form of care.</div>
+      <div class="about-p">You don't need to fix everything every day. But you do need to know how you are. Most people have never systematically tracked whether their mind, gut, and body tend to feel better or worse on certain days, after certain foods, or after certain habits.<br><br>This app gives you a mirror — not a coach, not a calculator. Just a quiet daily mirror. Over weeks, patterns emerge. Your own patterns. And that awareness naturally starts to guide better choices — without rules or commands.</div>
+    </div>
+    <div class="about-rule"></div>
+    <div class="about-block">
+      <div class="about-tag">The science behind it</div>
+      <div class="about-h">Mind, gut, and body are one connected system.</div>
+      <div class="about-p">The gut is often called the second brain. It contains over 100 million neurons and produces 90% of the body's serotonin. When your gut is off, your mood follows. When your body is stiff, your mind is more foggy. When your mind is anxious, your stomach tightens.<br><br>The System Health Index (SHI) reflects this — a weighted score that acknowledges the mind's central role while accounting for body and gut as equal contributors to how a day actually feels.</div>
+    </div>
+    <div class="about-rule"></div>
+    <div class="about-block">
+      <div class="about-tag">The morning ritual</div>
+      <div class="about-h">A slow start is not a luxury — it's a strategy.</div>
+      <div class="about-p">Movement first (wake the body), then meditation (settle the mind), then a gentle breakfast (signal calm to the gut). This sequence mirrors how the body's systems naturally want to activate when not rushed.<br><br>Five minutes of movement. Five minutes of stillness. One good meal. That's the whole ritual.</div>
+    </div>
+    <div class="about-rule"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem">
+      <span class="about-pill">Mindfulness</span><span class="about-pill">Gut-Brain Axis</span><span class="about-pill">Self-awareness</span><span class="about-pill">Daily rhythm</span><span class="about-pill">Body intelligence</span>
+    </div>
+    <button class="btn btn-g" onclick="closeM('aboutModal')">Close</button>
+  </div>
+</div>
+
+<!-- Reset confirm -->
+<div class="modal-bg" id="resetModal" onclick="if(event.target===this)closeM('resetModal')">
+  <div class="modal max">
+    <div class="mhnd"></div>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.2rem;margin-bottom:.6rem">Reset everything?</div>
+    <div style="font-size:.83rem;color:var(--tx2);line-height:1.8;margin-bottom:1.4rem">This will permanently delete all your entries, your name, and all history. This cannot be undone. Consider exporting your data first.</div>
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <button class="btn" style="background:var(--red);color:#000;padding:.85rem;font-size:.83rem;font-weight:600;width:100%" onclick="doReset()">Yes, delete everything</button>
+      <button class="btn btn-g" onclick="closeM('resetModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
