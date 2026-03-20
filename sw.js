@@ -1,11 +1,18 @@
-const CACHE_NAME = 'pulse-v1';
-const ASSETS = ['./', './index.html'];
+const CACHE_NAME = 'pulse-v4'; // Incremented version
+const assets = [
+  './index.html',
+  './',
+  './icon.png'
+];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(c => c.addAll(assets))
+  );
 });
 
 self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-})
-  ;
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request))
+  );
+});
